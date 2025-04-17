@@ -2,6 +2,9 @@ using UnityEngine;
 
 public class Player : MonoBehaviour
 {
+    [SerializeField] private int _viesJoueur = 3;
+    public int ViesJoueur => _viesJoueur;
+
     [SerializeField] private float _vitesseJoueur = 10f;
     [SerializeField] private float _maxY = 0f;
     [SerializeField] private GameObject _laserPrefab = default(GameObject);
@@ -10,12 +13,18 @@ public class Player : MonoBehaviour
     private float _tempsTir = -1f;
 
     private InputSystem_Actions _playerInputActions;
+    private Animator _animator;
 
     private void Awake()
     {
         _playerInputActions = new InputSystem_Actions();
         _playerInputActions.Player.Enable();
         _playerInputActions.Player.Attack.performed += Attack_performed;
+    }
+
+    private void Start()
+    {
+        _animator = GetComponent<Animator>();
     }
 
     private void OnDestroy()
@@ -50,8 +59,23 @@ public class Player : MonoBehaviour
 
         transform.Translate(direction2D * Time.deltaTime * _vitesseJoueur);
 
+        //Gérer Animations
+        if (direction2D.x > 0f)
+        {
+            _animator.SetBool("TurnRight", true);
+        }
+        else if(direction2D.x < 0f) 
+        {
+            _animator.SetBool("TurnLeft", true);
+        }
+        else
+        {
+            _animator.SetBool("TurnLeft", false);
+            _animator.SetBool("TurnRight", false);
+        }
+
         // Clamp le joueur entre 2 valeurs en Y
-        transform.position = new Vector2(transform.position.x, Mathf.Clamp(transform.position.y, -4.5f, _maxY));
+        transform.position = new Vector2(transform.position.x, Mathf.Clamp(transform.position.y, -4f, _maxY));
 
         //Effet sortie gauche/droite
         if (transform.position.x > 9.5f)
@@ -61,6 +85,18 @@ public class Player : MonoBehaviour
         else if (transform.position.x < -9.5f)
         {
             transform.position = new Vector2(9.5f, transform.position.y);
+        }
+    }
+
+    public void DommageJoueur( )
+    {
+        _viesJoueur -= 1;
+
+        if(_viesJoueur <= 0)
+        {
+            SpawnManager spawnManager = FindAnyObjectByType<SpawnManager>();
+            spawnManager.Mortjoueur();
+            Destroy(gameObject);
         }
     }
 }

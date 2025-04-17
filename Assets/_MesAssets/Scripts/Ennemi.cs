@@ -3,6 +3,8 @@ using UnityEngine;
 public class Ennemi : MonoBehaviour
 {
     [SerializeField] float _vitesseEnnemi = 4f;
+    [SerializeField] int _pointsEnnemi = 100;
+    [SerializeField] GameObject _explosion = default(GameObject);
     
     private void Update()
     {
@@ -19,14 +21,17 @@ public class Ennemi : MonoBehaviour
     {
         if(collision.tag == "Player")
         {
-            //Enlève une vie au joueur
-            Destroy(gameObject);
+            Player _player = FindAnyObjectByType<Player>();
+            _player.DommageJoueur();
+            UIManager.Instance.UpdateViesJoueur(_player.ViesJoueur);
         }
         else   if (collision.tag == "Laser")
         {
-            // Donne des points au joueur
-            Destroy(gameObject);
+            GameManager.Instance.AugmenterPointage(_pointsEnnemi);
             Destroy(collision.gameObject);
         }
+
+        Instantiate(_explosion, transform.position, Quaternion.identity);
+        Destroy(gameObject);
     }
 }
